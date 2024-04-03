@@ -1,76 +1,59 @@
-//Write a program (in your preferred programming language) that simulates non-preemptive SJF scheduling for a set of processes. Include features like process arrivaltimes, burst times, and context switching. The program should output the completion time, turnaround time, and waiting time for each process.
+//shortest job first algorthm in C. 
 
 #include <stdio.h>
 #include <stdlib.h>
 
-//code for non-preemptive SJF scheduling
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int waiting_time;
+    int turnaround_time;
+    int completion_time;
+};
 
-int main()
-{
-    int n, i, j;
+void sort(struct process *p, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i; j < n; j++) {
+            if (p[i].arrival_time > p[j].arrival_time) {
+                struct process temp = p[i];
+                p[i] = p[j];
+                p[j] = temp;
+            }
+        }
+    }
+}
+
+void sjf(struct process *p, int n) {
+    int time = 0;
+    for (int i = 0; i < n; i++) {
+        p[i].waiting_time = time - p[i].arrival_time;
+        time += p[i].burst_time;
+        p[i].turnaround_time = time - p[i].arrival_time;
+        p[i].completion_time = time;
+    }
+}
+
+void display(struct process *p, int n) {
+    printf("PID\tAT\tBT\tWT\tTAT\tCT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n", p[i].pid, p[i].arrival_time, p[i].burst_time, p[i].waiting_time, p[i].turnaround_time, p[i].completion_time);
+    }
+}
+
+int main() {
+    int n;
     printf("Enter the number of processes: ");
     scanf("%d", &n);
-    int arrival_time[n], burst_time[n], completion_time[n], turnaround_time[n], waiting_time[n];
-    for (i = 0; i < n; i++)
-    {
+    struct process *p = (struct process *)malloc(n * sizeof(struct process));
+    for (int i = 0; i < n; i++) {
         printf("Enter the arrival time and burst time of process %d: ", i + 1);
-        scanf("%d %d", &arrival_time[i], &burst_time[i]);
+        scanf("%d %d", &p[i].arrival_time, &p[i].burst_time);
+        p[i].pid = i + 1;
     }
-
-    //sort the arrival
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n - i - 1; j++)
-        {
-            if (arrival_time[j] > arrival_time[j + 1])
-            {
-                int temp = arrival_time[j];
-                arrival_time[j] = arrival_time[j + 1];
-                arrival_time[j + 1] = temp;
-                temp = burst_time[j];
-                burst_time[j] = burst_time[j + 1];
-                burst_time[j + 1] = temp;
-            }
-        }
-    }
-
-    //sort the burst time
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n - i - 1; j++)
-        {
-            if (burst_time[j] > burst_time[j + 1])
-            {
-                int temp = arrival_time[j];
-                arrival_time[j] = arrival_time[j + 1];
-                arrival_time[j + 1] = temp;
-                temp = burst_time[j];
-                burst_time[j] = burst_time[j + 1];
-                burst_time[j + 1] = temp;
-            }
-        }
-    }
-
-    completion_time[0] = arrival_time[0] + burst_time[0];
-    turnaround_time[0] = completion_time[0] - arrival_time[0];
-    waiting_time[0] = turnaround_time[0] - burst_time[0];
-    for (i = 1; i < n; i++)
-    {
-        if (arrival_time[i] > completion_time[i - 1])
-        {
-            completion_time[i] = arrival_time[i] + burst_time[i];
-        }
-        else
-        {
-            completion_time[i] = completion_time[i - 1] + burst_time[i];
-        }
-        turnaround_time[i] = completion_time[i] - arrival_time[i];
-        waiting_time[i] = turnaround_time[i] - burst_time[i];
-    }
-    printf("Process\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWaiting Time\n");
-    for (i = 0; i < n; i++)
-    {
-        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", i + 1, arrival_time[i], burst_time[i], completion_time[i], turnaround_time[i], waiting_time[i]);
-    }
+    sort(p, n);
+    sjf(p, n);
+    display(p, n);
+    free(p);
     return 0;
 }
